@@ -1,2 +1,6 @@
+DROP TABLE IF EXISTS users;
 DROP TABLE IF EXISTS orders;
 DROP TABLE IF EXISTS fruits;
+DROP TYPE IF EXISTS type_fruit;
+DROP TYPE IF EXISTS order_status;
+

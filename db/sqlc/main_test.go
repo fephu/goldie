@@ -6,11 +6,8 @@ import (
 	"os"
 	"testing"
 
+	"github.com/fephu/fresh-fruit/util"
 	"github.com/jackc/pgx/v5/pgxpool"
-)
-
-const (
-	DBSource = "postgresql://root:2311@localhost:5432/fresh_fruit?sslmode=disable"
 )
 
 var testStore Store
@@ -18,7 +15,12 @@ var testStore Store
 func TestMain(m *testing.M) {
 	var err error
 
-	connPool, err := pgxpool.New(context.Background(), DBSource)
+	config, err := util.LoadConfig("../..")
+	if err != nil {
+		log.Fatal("cannot load config:", err)
+	}
+
+	connPool, err := pgxpool.New(context.Background(), config.DBSource)
 	if err != nil {
 		log.Fatal("cannot connect to db:", err)
 	}

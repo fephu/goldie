@@ -10,10 +10,13 @@ import (
 
 type Querier interface {
 	CreateFruit(ctx context.Context, name string) (Fruit, error)
+	CreateUser(ctx context.Context, arg CreateUserParams) (User, error)
 	DeleteFruit(ctx context.Context, id int64) error
 	GetFruit(ctx context.Context, id int64) (Fruit, error)
+	GetUser(ctx context.Context, email string) (User, error)
 	ListFruits(ctx context.Context, arg ListFruitsParams) ([]Fruit, error)
 	UpdateFruit(ctx context.Context, arg UpdateFruitParams) (Fruit, error)
+	UpdateUser(ctx context.Context, arg UpdateUserParams) (User, error)
 }
 
 var _ Querier = (*Queries)(nil)
