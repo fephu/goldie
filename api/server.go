@@ -6,26 +6,29 @@ import (
 	db "github.com/fephu/fresh-fruit/db/sqlc"
 	"github.com/fephu/fresh-fruit/token"
 	"github.com/fephu/fresh-fruit/util"
+	"github.com/fephu/fresh-fruit/worker"
 	"github.com/gin-gonic/gin"
 )
 
 type Server struct {
-	config     util.Config
-	store      db.Store
-	tokenMaker token.Maker
-	router     *gin.Engine
+	config          util.Config
+	store           db.Store
+	tokenMaker      token.Maker
+	router          *gin.Engine
+	taskDistributor worker.TaskDistributor
 }
 
-func NewServer(config util.Config, store db.Store) (*Server, error) {
+func NewServer(config util.Config, store db.Store, taskDistributor worker.TaskDistributor) (*Server, error) {
 	tokenMaker, err := token.NewPasetoMaker(config.TokenSymmetricKey)
 	if err != nil {
 		return nil, fmt.Errorf("cannot create token maker: %w", err)
 	}
 
 	server := &Server{
-		config:     config,
-		store:      store,
-		tokenMaker: tokenMaker,
+		config:          config,
+		store:           store,
+		tokenMaker:      tokenMaker,
+		taskDistributor: taskDistributor,
 	}
 
 	server.setupRouter()
@@ -40,6 +43,7 @@ func (server *Server) setupRouter() {
 	router.POST("/users", server.createUser)
 	router.POST("/users/login", server.loginUser)
 	router.POST("/tokens/renew_access", server.renewAccessToken)
+	router.GET("/verify_email", server.verifyEmail)
 
 	authRoutes := router.Group("/").Use(authMiddleware(server.tokenMaker))
 

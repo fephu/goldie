@@ -6,7 +6,9 @@ import (
 
 	db "github.com/fephu/fresh-fruit/db/sqlc"
 	"github.com/fephu/fresh-fruit/util"
+	"github.com/fephu/fresh-fruit/worker"
 	"github.com/gin-gonic/gin"
+	"github.com/hibiken/asynq"
 )
 
 type createUserRequest struct {
@@ -43,19 +45,34 @@ func (server *Server) createUser(ctx *gin.Context) {
 		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
 	}
 
-	arg := db.CreateUserParams{
-		HashedPassword: hashedPassword,
-		FullName:       req.FullName,
-		Email:          req.Email,
+	arg := db.CreateUserTxParams{
+		CreateUserParams: db.CreateUserParams{
+			Email:          req.Email,
+			FullName:       req.FullName,
+			HashedPassword: hashedPassword,
+		},
+		AfterCreate: func(user db.User) error {
+			taskPayload := &worker.PayloadSendVerifyEmail{
+				Email: user.Email,
+			}
+
+			opts := []asynq.Option{
+				asynq.MaxRetry(10),
+				asynq.ProcessIn(10 * time.Second),
+				asynq.Queue(worker.QueueCritical),
+			}
+
+			return server.taskDistributor.DistributeTaskSendVerifyEmail(ctx, taskPayload, opts...)
+		},
 	}
 
-	user, err := server.store.CreateUser(ctx, arg)
+	txResult, err := server.store.CreateUserTx(ctx, arg)
 	if err != nil {
-		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
+		ctx.JSON(http.StatusNotFound, errorResponse(err))
 		return
 	}
 
-	rsp := newUserResponse(user)
+	rsp := newUserResponse(txResult.User)
 
 	ctx.JSON(http.StatusOK, rsp)
 }
