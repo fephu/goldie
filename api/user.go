@@ -110,7 +110,7 @@ func (server *Server) loginUser(ctx *gin.Context) {
 	}
 
 	accessToken, accessPayload, err := server.tokenMaker.CreateToken(
-		user.ID, server.config.AccessTokenDuration,
+		user.Email, server.config.AccessTokenDuration,
 	)
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
@@ -118,7 +118,7 @@ func (server *Server) loginUser(ctx *gin.Context) {
 	}
 
 	refreshToken, refreshPayload, err := server.tokenMaker.CreateToken(
-		user.ID, server.config.RefreshTokenDuration,
+		user.Email, server.config.RefreshTokenDuration,
 	)
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
@@ -132,6 +132,24 @@ func (server *Server) loginUser(ctx *gin.Context) {
 		RefreshTokenExpiresAt: refreshPayload.ExpiredAt,
 		User:                  newUserResponse(user),
 	}
+
+	ctx.JSON(http.StatusOK, rsp)
+}
+
+func (server *Server) fetchMe(ctx *gin.Context) {
+	payload, exists := ctx.Get(authorizationPayloadKey)
+	if !exists {
+		ctx.JSON(http.StatusUnauthorized, gin.H{"error": "User not found"})
+		return
+	}
+
+	user, err := server.store.GetUser(ctx, payload.(string))
+	if err != nil {
+		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
+		return
+	}
+
+	rsp := newUserResponse(user)
 
 	ctx.JSON(http.StatusOK, rsp)
 }

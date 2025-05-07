@@ -9,14 +9,16 @@ import (
 )
 
 type Querier interface {
-	CreateFruit(ctx context.Context, name string) (Fruit, error)
+	CreateCategory(ctx context.Context, arg CreateCategoryParams) (Category, error)
+	CreateProduct(ctx context.Context, arg CreateProductParams) (Product, error)
 	CreateUser(ctx context.Context, arg CreateUserParams) (User, error)
 	CreateVerifyEmail(ctx context.Context, arg CreateVerifyEmailParams) (VerifyEmail, error)
-	DeleteFruit(ctx context.Context, id int64) error
-	GetFruit(ctx context.Context, id int64) (Fruit, error)
+	GetCategory(ctx context.Context, value string) (Category, error)
+	GetProduct(ctx context.Context, id int64) (Product, error)
 	GetUser(ctx context.Context, email string) (User, error)
-	ListFruits(ctx context.Context, arg ListFruitsParams) ([]Fruit, error)
-	UpdateFruit(ctx context.Context, arg UpdateFruitParams) (Fruit, error)
+	ListCategories(ctx context.Context) ([]Category, error)
+	ListProducts(ctx context.Context, arg ListProductsParams) ([]Product, error)
+	ListProductsByCategory(ctx context.Context, arg ListProductsByCategoryParams) ([]Product, error)
 	UpdateUser(ctx context.Context, arg UpdateUserParams) (User, error)
 	UpdateVerifyEmail(ctx context.Context, arg UpdateVerifyEmailParams) (VerifyEmail, error)
 }

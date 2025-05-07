@@ -53,62 +53,39 @@ func (ns NullOrderStatus) Value() (driver.Value, error) {
 	return string(ns.OrderStatus), nil
 }
 
-type TypeFruit string
-
-const (
-	TypeFruitBig   TypeFruit = "big"
-	TypeFruitSmall TypeFruit = "small"
-)
-
-func (e *TypeFruit) Scan(src interface{}) error {
-	switch s := src.(type) {
-	case []byte:
-		*e = TypeFruit(s)
-	case string:
-		*e = TypeFruit(s)
-	default:
-		return fmt.Errorf("unsupported scan type for TypeFruit: %T", src)
-	}
-	return nil
-}
-
-type NullTypeFruit struct {
-	TypeFruit TypeFruit `json:"type_fruit"`
-	Valid     bool      `json:"valid"` // Valid is true if TypeFruit is not NULL
-}
-
-// Scan implements the Scanner interface.
-func (ns *NullTypeFruit) Scan(value interface{}) error {
-	if value == nil {
-		ns.TypeFruit, ns.Valid = "", false
-		return nil
-	}
-	ns.Valid = true
-	return ns.TypeFruit.Scan(value)
-}
-
-// Value implements the driver Valuer interface.
-func (ns NullTypeFruit) Value() (driver.Value, error) {
-	if !ns.Valid {
-		return nil, nil
-	}
-	return string(ns.TypeFruit), nil
-}
-
-type Fruit struct {
-	ID        int64     `json:"id"`
-	Name      string    `json:"name"`
-	CreatedAt time.Time `json:"created_at"`
+type Category struct {
+	Value string `json:"value"`
+	Name  string `json:"name"`
 }
 
 type Order struct {
-	ID      int64       `json:"id"`
-	UserID  int64       `json:"user_id"`
-	FruitID int64       `json:"fruit_id"`
-	Status  OrderStatus `json:"status"`
-	Type    TypeFruit   `json:"type"`
+	ID     int64       `json:"id"`
+	UserID int64       `json:"user_id"`
+	Status OrderStatus `json:"status"`
 	// can be negative or positive
-	Amount    int64     `json:"amount"`
+	Amount      int64     `json:"amount"`
+	CreatedAt   time.Time `json:"created_at"`
+	Address     string    `json:"address"`
+	PhoneNumber string    `json:"phone_number"`
+}
+
+type OrderItem struct {
+	ID         int64 `json:"id"`
+	OrderID    int64 `json:"order_id"`
+	ProductID  int64 `json:"product_id"`
+	Quantity   int32 `json:"quantity"`
+	TotalPrice int64 `json:"total_price"`
+}
+
+type Product struct {
+	ID        int64     `json:"id"`
+	Name      string    `json:"name"`
+	Price     int64     `json:"price"`
+	Images    []string  `json:"images"`
+	Color     string    `json:"color"`
+	Size      []string  `json:"size"`
+	Category  string    `json:"category"`
+	Features  []string  `json:"features"`
 	CreatedAt time.Time `json:"created_at"`
 }
 

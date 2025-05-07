@@ -19,6 +19,9 @@ type Config struct {
 	EmailSenderName      string        `mapstructure:"EMAIL_SENDER_NAME"`
 	EmailSenderAddress   string        `mapstructure:"EMAIL_SENDER_ADDRESS"`
 	EmailSenderPassword  string        `mapstructure:"EMAIL_SENDER_PASSWORD"`
+	CloudinaryApiKey     string        `mapstructure:"CLOUDINARY_API_KEY"`
+	CloudinaryApiSecret  string        `mapstructure:"CLOUDINARY_API_SECRET"`
+	CloudinaryCloudName  string        `mapstructure:"CLOUDINARY_CLOUD_NAME"`
 }
 
 // LoadConfig reads configuration from file or enviroment variables.

@@ -2,11 +2,13 @@ package api
 
 import (
 	"fmt"
+	"time"
 
 	db "github.com/fephu/fresh-fruit/db/sqlc"
 	"github.com/fephu/fresh-fruit/token"
 	"github.com/fephu/fresh-fruit/util"
 	"github.com/fephu/fresh-fruit/worker"
+	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 )
 
@@ -39,19 +41,33 @@ func NewServer(config util.Config, store db.Store, taskDistributor worker.TaskDi
 func (server *Server) setupRouter() {
 	router := gin.Default()
 
+	// set up cors
+	router.Use(cors.New(cors.Config{
+		AllowOrigins:     server.config.AllowedOrigins,
+		AllowMethods:     []string{"PUT", "PATCH", "GET", "POST", "DELETE"},
+		AllowHeaders:     []string{"Authorization", "Content-Type"},
+		AllowCredentials: true,
+		MaxAge:           12 * time.Hour,
+	}))
+
 	// auth router
 	router.POST("/users", server.createUser)
 	router.POST("/users/login", server.loginUser)
 	router.POST("/tokens/renew_access", server.renewAccessToken)
 	router.GET("/verify_email", server.verifyEmail)
 
-	authRoutes := router.Group("/").Use(authMiddleware(server.tokenMaker))
+	router.GET("/products", server.listProducts)
+	router.POST("/product/add", server.createProduct)
 
-	// fruit router
-	authRoutes.GET("/fruits", server.listFruits)
-	authRoutes.POST("/fruits", server.createFruit)
-	authRoutes.GET("/fruits/:id", server.getFruit)
-	authRoutes.PATCH("/fruits/:id", server.deleteFruit)
+	// category router
+	router.GET("/categories", server.listCategories)
+	router.POST("/category/add", server.createCategory)
+
+	authRoutes := router.Group("/").Use(authMiddleware(server.tokenMaker))
+	authRoutes.GET("/users/fetch", server.fetchMe)
+
+	// order router
+	// router.POST("/orders", server.createOrder)
 
 	server.router = router
 }
